@@ -1,0 +1,24 @@
+idea:
+  title: Evolved desire in LLMs
+  domain: artificial_intelligence
+  hypothesis: 'Prompts evolved under selection pressure for goal-persistence in LLMs
+    will result in less drift from the original task compared to standard prompts,
+    suggesting that persistent "desire" cannot be simply instructed but must be evolved.
+
+    '
+  background:
+    description: "LLMs can perform goal-pursuit, but they drift when context pulls\
+      \ them elsewhere. They don't come back. My intuition is that you can't instruct\
+      \ desire into existence\u2014you have to evolve it. So: take a simple task (say,\
+      \ outputting incrementing numbers while handling distractions), evolve prompts\
+      \ under selection pressure for goal-persistence, and see what survives. Do the\
+      \ winners look like anything a human would write? Do they drift less? If so,\
+      \ show me what's in them. If not, why not?"
+  metadata:
+    source: IdeaHub
+    source_url: https://hypogenic.ai/ideahub/idea/uuh2oglRtmN3eVlQaYX8
+    idea_id: evolved_desire_in_llms_20251222_002535_200d41c0
+    created_at: '2025-12-22T00:25:35.041386'
+    status: submitted
+    github_repo_name: evolved-desire-llms-claude
+    github_repo_url: https://github.com/Hypogenic-AI/evolved-desire-llms-claude
