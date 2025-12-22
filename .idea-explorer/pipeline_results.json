@@ -1,9 +1,9 @@
 {
-  "success": false,
+  "success": true,
   "stages": {
     "resource_finder": {
-      "success": false,
-      "completion_marker": null,
+      "success": true,
+      "completion_marker": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/.resource_finder_complete",
       "outputs": {
         "literature_review": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/literature_review.md",
         "resources_catalog": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/resources.md",
@@ -13,7 +13,14 @@
       },
       "log_file": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/logs/resource_finder_claude.log",
       "transcript_file": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/logs/resource_finder_claude_transcript.jsonl",
-      "elapsed_time": 626.982878446579
+      "elapsed_time": 211.43257784843445
+    },
+    "experiment_runner": {
+      "success": true,
+      "return_code": 0,
+      "elapsed_time": 3373.2054624557495,
+      "log_file": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/logs/execution_claude.log",
+      "transcript_file": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/logs/execution_claude_transcript.jsonl"
     }
   },
   "work_dir": "/data/hypogenicai/workspaces/evolved-desire-llms-claude"

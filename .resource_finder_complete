@@ -1,0 +1,16 @@
+Resource finding phase completed successfully.
+Timestamp: 2024-12-22T00:41:00+00:00
+Papers downloaded: 9
+Datasets documented: 5
+Repositories cloned: 5
+
+Research Topic: Evolved Desire in LLMs
+Hypothesis: Prompts evolved under selection pressure for goal-persistence in LLMs will result in less drift from the original task compared to standard prompts, suggesting that persistent "desire" cannot be simply instructed but must be evolved.
+
+Resources Summary:
+- Papers: Goal drift detection, prompt evolution (EA-based and LLM-based), instruction adherence
+- Datasets: TaskTracker (500K+), IFEval, Big-Bench-Hard, LLMBar, GSM8K
+- Code: TaskTracker, EvoPrompt, OPRO, BIG-Bench-Hard, Prompt-Day-Care
+
+See literature_review.md for comprehensive synthesis.
+See resources.md for full resource catalog.

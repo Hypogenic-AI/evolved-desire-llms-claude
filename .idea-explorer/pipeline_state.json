@@ -2,10 +2,10 @@
   "created_at": "2025-12-22T00:25:39.935141",
   "stages": {
     "resource_finder": {
-      "status": "failed",
-      "started_at": "2025-12-22T00:25:39.935710",
-      "completed_at": "2025-12-22T00:36:06.920212",
-      "success": false,
+      "status": "completed",
+      "started_at": "2025-12-22T00:38:07.768349",
+      "completed_at": "2025-12-22T00:41:39.202430",
+      "success": true,
       "outputs": {
         "literature_review": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/literature_review.md",
         "resources_catalog": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/resources.md",
@@ -13,8 +13,22 @@
         "datasets_dir": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/datasets",
         "code_dir": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/code"
       }
+    },
+    "experiment_runner": {
+      "status": "completed",
+      "started_at": "2025-12-22T00:41:39.202897",
+      "completed_at": "2025-12-22T01:37:52.425577",
+      "success": true,
+      "outputs": {
+        "success": true,
+        "return_code": 0,
+        "elapsed_time": 3373.2054624557495,
+        "log_file": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/logs/execution_claude.log",
+        "transcript_file": "/data/hypogenicai/workspaces/evolved-desire-llms-claude/logs/execution_claude_transcript.jsonl"
+      }
     }
   },
   "current_stage": null,
-  "completed": false
+  "completed": true,
+  "completed_at": "2025-12-22T01:37:52.425973"
 }

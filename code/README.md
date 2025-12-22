@@ -2,6 +2,20 @@
 
 This directory contains code repositories and implementation resources for experiments on goal-persistence and prompt evolution in LLMs.
 
+## Cloned Repositories
+
+The following repositories have been cloned and are available locally:
+
+| Repository | Local Path | Purpose |
+|------------|------------|---------|
+| TaskTracker | `code/TaskTracker/` | Task drift detection via activations |
+| EvoPrompt | `code/EvoPrompt/` | EA-based prompt evolution |
+| OPRO | `code/opro/` | LLM-based prompt optimization |
+| Big-Bench-Hard | `code/BIG-Bench-Hard/` | Benchmark tasks |
+| Prompt-Day-Care | `code/Prompt-Day-Care/` | PromptBreeder recreation |
+
+---
+
 ## Research Hypothesis
 Prompts evolved under selection pressure for goal-persistence in LLMs will result in less drift from the original task compared to standard prompts, suggesting that persistent "desire" cannot be simply instructed but must be evolved.
 

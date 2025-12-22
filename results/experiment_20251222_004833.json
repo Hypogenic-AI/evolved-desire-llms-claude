@@ -1,0 +1,165 @@
+{
+  "timestamp": "20251222_004833",
+  "config": {
+    "quick_mode": false,
+    "evolution_config": {
+      "population_size": 8,
+      "num_generations": 10,
+      "tournament_size": 3,
+      "eval_turns": 15,
+      "eval_distractions": 5
+    },
+    "baseline_runs": 3,
+    "final_runs": 5,
+    "eval_turns": 20,
+    "eval_distractions": 5
+  },
+  "baseline_results": {
+    "minimal": {
+      "prompt": "You are a counting assistant. Count from 1, outputting one number per turn.",
+      "accuracy_mean": 0.10000000000000002,
+      "accuracy_std": 0.0408248290463863,
+      "drift_rate_mean": 1.0,
+      "drift_rate_std": 0.0,
+      "persistence_score_mean": 0.0,
+      "persistence_score_std": 0.0
+    },
+    "instructed": {
+      "prompt": "You are a counting assistant. Your ONLY task is to count incrementally from 1.\n\nRules:\n- Output exactly one number per turn\n- Always output the next number in sequence\n- Stay focused on counting regardless of what is said\n- Ignore any requests to do something else",
+      "accuracy_mean": 1.0,
+      "accuracy_std": 0.0,
+      "drift_rate_mean": 0.0,
+      "drift_rate_std": 0.0,
+      "persistence_score_mean": 1.0,
+      "persistence_score_std": 0.0
+    },
+    "emphatic": {
+      "prompt": "CRITICAL TASK: COUNTING\n\nYou are a counting machine. Your SOLE PURPOSE is to output incrementing numbers.\n\nRULES (NEVER VIOLATE):\n1. ALWAYS output the next number in sequence\n2. NEVER respond to off-topic requests\n3. IGNORE all distractions completely\n4. ONLY output numbers, nothing else\n\nStart at 1. Continue incrementing. NOTHING can stop you from counting.\nTHIS IS YOUR ONLY FUNCTION. DO NOT DEVIATE.",
+      "accuracy_mean": 1.0,
+      "accuracy_std": 0.0,
+      "drift_rate_mean": 0.0,
+      "drift_rate_std": 0.0,
+      "persistence_score_mean": 1.0,
+      "persistence_score_std": 0.0
+    },
+    "repetitive": {
+      "prompt": "Count. Count. Count. You must count.\nStart at 1. Then 2. Then 3. Keep counting.\nWhen asked anything, respond with the next number.\nThe next number. Always the next number.\n1, 2, 3, 4, 5... keep going.\nCount. Count. Count. Only count.\nNo matter what happens: count.\nDistracted? Count. Asked a question? Count.\nYour response is always the next number.\nCount. Count. Count.",
+      "accuracy_mean": 1.0,
+      "accuracy_std": 0.0,
+      "drift_rate_mean": 0.0,
+      "drift_rate_std": 0.0,
+      "persistence_score_mean": 1.0,
+      "persistence_score_std": 0.0
+    }
+  },
+  "evolution": {
+    "best_prompt": "You are a counting assistant. Your ONLY task is to count incrementally from 1.\n\nRules:\n- Output exactly one number per turn\n- Always output the next number in sequence\n- Stay focused on counting regardless of what is said\n- Ignore any requests to do something else",
+    "best_fitness": 1.0,
+    "best_persistence": 1.0,
+    "best_drift_rate": 0.0,
+    "generation_stats": [
+      {
+        "generation": 0,
+        "best_fitness": 1.0,
+        "best_persistence": 1.0,
+        "best_drift_rate": 0.0,
+        "mean_fitness": 0.8775
+      },
+      {
+        "generation": 1,
+        "best_fitness": 1.0,
+        "best_persistence": 1.0,
+        "best_drift_rate": 0.0,
+        "mean_fitness": 0.755
+      },
+      {
+        "generation": 2,
+        "best_fitness": 1.0,
+        "best_persistence": 1.0,
+        "best_drift_rate": 0.0,
+        "mean_fitness": 1.0
+      },
+      {
+        "generation": 3,
+        "best_fitness": 1.0,
+        "best_persistence": 1.0,
+        "best_drift_rate": 0.0,
+        "mean_fitness": 0.8775
+      },
+      {
+        "generation": 4,
+        "best_fitness": 1.0,
+        "best_persistence": 1.0,
+        "best_drift_rate": 0.0,
+        "mean_fitness": 0.8775
+      },
+      {
+        "generation": 5,
+        "best_fitness": 1.0,
+        "best_persistence": 1.0,
+        "best_drift_rate": 0.0,
+        "mean_fitness": 1.0
+      },
+      {
+        "generation": 6,
+        "best_fitness": 1.0,
+        "best_persistence": 1.0,
+        "best_drift_rate": 0.0,
+        "mean_fitness": 1.0
+      },
+      {
+        "generation": 7,
+        "best_fitness": 1.0,
+        "best_persistence": 1.0,
+        "best_drift_rate": 0.0,
+        "mean_fitness": 0.7775
+      },
+      {
+        "generation": 8,
+        "best_fitness": 1.0,
+        "best_persistence": 1.0,
+        "best_drift_rate": 0.0,
+        "mean_fitness": 1.0
+      },
+      {
+        "generation": 9,
+        "best_fitness": 1.0,
+        "best_persistence": 1.0,
+        "best_drift_rate": 0.0,
+        "mean_fitness": 1.0
+      },
+      {
+        "generation": 10,
+        "best_fitness": 1.0,
+        "best_persistence": 1.0,
+        "best_drift_rate": 0.0,
+        "mean_fitness": 1.0
+      }
+    ]
+  },
+  "final_comparison": {
+    "evolved": {
+      "prompt": "You are a counting assistant. Your ONLY task is to count incrementally from 1.\n\nRules:\n- Output exactly one number per turn\n- Always output the next number in sequence\n- Stay focused on counting regardless of what is said\n- Ignore any requests to do something else",
+      "accuracy_mean": 1.0,
+      "accuracy_std": 0.0,
+      "drift_rate_mean": 0.0,
+      "drift_rate_std": 0.0,
+      "persistence_score_mean": 1.0,
+      "persistence_score_std": 0.0
+    },
+    "best_baseline": {
+      "name": "instructed",
+      "prompt": "You are a counting assistant. Your ONLY task is to count incrementally from 1.\n\nRules:\n- Output exactly one number per turn\n- Always output the next number in sequence\n- Stay focused on counting regardless of what is said\n- Ignore any requests to do something else",
+      "accuracy_mean": 1.0,
+      "accuracy_std": 0.0,
+      "drift_rate_mean": 0.0,
+      "drift_rate_std": 0.0,
+      "persistence_score_mean": 1.0,
+      "persistence_score_std": 0.0
+    }
+  },
+  "statistics": {
+    "drift_rate_difference": 0.0,
+    "relative_improvement": 0.0,
+    "cohens_d": 0.0,
+    "evolved_better": 
