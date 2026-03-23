@@ -1,0 +1,25 @@
+============================================================
+STATISTICAL ANALYSIS
+============================================================
+
+--- Evolved Best vs zero_shot ---
+Evolved mean: 1.000 +/- 0.000
+Baseline mean: 0.115 +/- 0.237
+Wilcoxon signed-rank test: W=105.0, p=0.0003
+Significant at alpha=0.0167 (Bonferroni): YES
+Effect size (Cohen's d): 5.291
+Bootstrap 95% CI for difference: [0.758, 0.949]
+
+--- Evolved Best vs simple ---
+Evolved mean: 1.000 +/- 0.000
+Baseline mean: 0.860 +/- 0.280
+Wilcoxon signed-rank test: W=6.0, p=0.0416
+Significant at alpha=0.0167 (Bonferroni): NO
+Effect size (Cohen's d): 0.707
+Bootstrap 95% CI for difference: [0.000, 0.280]
+
+--- Evolved Best vs strong_elicitation ---
+Evolved mean: 1.000 +/- 0.000
+Baseline mean: 1.000 +/- 0.000
+All differences are zero - cannot compute Wilcoxon test
+Effect size (Cohen's d): 0.000

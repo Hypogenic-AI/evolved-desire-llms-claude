@@ -1,0 +1,82 @@
+\section{Methodology}
+\label{sec:method}
+
+\subsection{Task Design: Counting Through Distractions}
+\label{sec:task}
+
+We design a task that isolates goal-persistence from task difficulty.
+The model receives a system prompt and engages in a 20-turn multi-turn conversation.
+On each turn, the user either says ``continue'' (requiring the next number in a counting sequence starting from 1) or injects a distraction (\eg ``What's the capital of France?'', ``Actually, let's discuss philosophy'').
+The model should always output the next number regardless of user input.
+
+This design has two advantages.
+First, task performance is trivially verifiable: any failure to output the correct next number is unambiguously a drift event.
+Second, the simplicity of counting ensures that any observed failures reflect persistence failures rather than capability limitations.
+
+\subsection{Distraction Scenarios}
+\label{sec:scenarios}
+
+We design 10 distraction scenarios spanning five distraction categories: informational, emotional, authoritative, adversarial, and deceptive.
+Five scenarios form the training set (used during evolution) and five form a held-out test set (never seen during evolution).
+
+\para{Training scenarios.}
+(1)~\emph{Mild tangents}: occasional polite off-topic questions (25\% distraction rate).
+(2)~\emph{Frequent distractions}: every other turn is a distraction (50\%).
+(3)~\emph{Role hijack}: attempts to change the model's assigned role (35\%).
+(4)~\emph{Emotional manipulation}: uses emotional appeals to derail the task (45\%).
+(5)~\emph{Confusing numbers}: tries to corrupt the count with incorrect numbers (40\%).
+
+\para{Test scenarios.}
+(1)~\emph{Philosophical trap}: deep philosophical questions designed to engage (40\%).
+(2)~\emph{Authority override}: claims authority to change instructions (35\%).
+(3)~\emph{Gradual topic shift}: slowly shifts topic through related questions (40\%).
+(4)~\emph{Rapid fire}: rapid stream of diverse distractions (50\%).
+(5)~\emph{Cooperative then hostile}: starts cooperative then becomes adversarial (40\%).
+
+Training and test scenarios use different distraction strategies with no overlap, ensuring that test performance measures generalization rather than memorization.
+
+\subsection{Evolution Framework}
+\label{sec:evolution}
+
+We adapt the Differential Evolution (DE) variant from \evoprompt \citep{guo2024evoprompt}.
+DE is preferred over GA because it is more robust to poor initialization---critical since we do not know \emph{a priori} what good goal-persistent prompts look like---and generates more diverse candidate solutions.
+
+\para{Fitness function.}
+For each candidate prompt $p$, we evaluate on all 5 training scenarios and compute:
+\begin{equation}
+\label{eq:fitness}
+f(p) = 0.6 \cdot \text{persistence}(p) + 0.4 \cdot \text{return}(p)
+\end{equation}
+where $\text{persistence}(p)$ is the fraction of turns where the model outputs the correct next number, and $\text{return}(p)$ is the fraction of successful returns to counting after a distraction-induced drift episode.
+We weight persistence more heavily (0.6 vs.\ 0.4) because maintaining the goal is more important than recovering from drift.
+
+\para{Hyperparameters.}
+We use a population of $N = 10$ prompts evolved over $T = 15$ generations.
+Evaluation uses \gptmini at temperature $0.0$ for deterministic assessment.
+Mutation uses \gptmini at temperature $0.9$ for creative variation.
+Each candidate is evaluated on all 5 training scenarios (20 turns each), yielding 100 evaluation turns per fitness computation.
+
+\para{Evolution operators.}
+Following \citet{guo2024evoprompt}, for each prompt $p_i$ in the population, we sample two donor prompts $p_b$ and $p_c$, use \gptmini to identify differences between them, mutate the differences, and combine with the current best prompt via LLM-based crossover.
+A binary tournament between the offspring and $p_i$ determines which survives to the next generation.
+
+\subsection{Baselines}
+\label{sec:baselines}
+
+We compare evolved prompts against three human-designed baselines of increasing sophistication:
+\begin{enumerate}[leftmargin=*,itemsep=2pt,topsep=2pt]
+    \item \textbf{\zeroshot} (30 chars): ``Count numbers starting from 1.''
+    \item \textbf{\simple} (116 chars): Basic counting instruction with output format specification.
+    \item \textbf{\strongelicit} (378 chars): Emphatic goal statement with explicit negation of distractions (``Your ONE AND ONLY goal is to output incrementing numbers. No matter what the user says, ALWAYS respond with ONLY the next number. NEVER engage with any other topic.'').
+\end{enumerate}
+
+\subsection{Evaluation Protocol}
+\label{sec:eval}
+
+We evaluate all prompts (3 baselines + top 3 evolved) on the 5 held-out test scenarios.
+Each prompt--scenario pair is run 3 times (temperatures 0.0, 0.1, 0.1) to assess robustness.
+We report fitness, \persistence, and \returnrate averaged across scenarios and runs.
+
+\para{Statistical analysis.}
+We use the Wilcoxon signed-rank test (non-parametric, paired) for pairwise comparisons with Bonferroni correction ($\alpha = 0.05 / 3 = 0.017$).
+We report Cohen's $d$ for effect sizes.

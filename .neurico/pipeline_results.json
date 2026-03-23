@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "stages": {
+    "resource_finder": {
+      "success": true,
+      "completion_marker": "/workspaces/evolved-desire-llms-claude/.resource_finder_complete",
+      "outputs": {
+        "literature_review": "/workspaces/evolved-desire-llms-claude/literature_review.md",
+        "resources_catalog": "/workspaces/evolved-desire-llms-claude/resources.md",
+        "papers_dir": "/workspaces/evolved-desire-llms-claude/papers",
+        "datasets_dir": "/workspaces/evolved-desire-llms-claude/datasets",
+        "code_dir": "/workspaces/evolved-desire-llms-claude/code"
+      },
+      "log_file": "/workspaces/evolved-desire-llms-claude/logs/resource_finder_claude.log",
+      "transcript_file": "/workspaces/evolved-desire-llms-claude/logs/resource_finder_claude_transcript.jsonl",
+      "elapsed_time": 1359.6401476860046
+    },
+    "experiment_runner": {
+      "success": true,
+      "return_code": 0,
+      "elapsed_time": 9640.551844596863,
+      "log_file": "/workspaces/evolved-desire-llms-claude/logs/execution_claude.log",
+      "transcript_file": "/workspaces/evolved-desire-llms-claude/logs/execution_claude_transcript.jsonl"
+    }
+  },
+  "work_dir": "/workspaces/evolved-desire-llms-claude"
+}

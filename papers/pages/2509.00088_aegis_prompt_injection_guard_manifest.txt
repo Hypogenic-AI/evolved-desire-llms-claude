@@ -1,0 +1,9 @@
+PDF: papers/2509.00088_aegis_prompt_injection_guard.pdf
+Total pages: 12
+Pages per chunk: 3
+
+Chunks:
+  2509.00088_aegis_prompt_injection_guard_chunk_001.pdf: pages 1-3
+  2509.00088_aegis_prompt_injection_guard_chunk_002.pdf: pages 4-6
+  2509.00088_aegis_prompt_injection_guard_chunk_003.pdf: pages 7-9
+  2509.00088_aegis_prompt_injection_guard_chunk_004.pdf: pages 10-12

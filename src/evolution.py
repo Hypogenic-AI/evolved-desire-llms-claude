@@ -1,423 +1,182 @@
-"""
-Prompt Evolution Framework for Goal-Persistence.
+"""Differential Evolution for goal-persistent prompts.
 
-Evolves prompts under selection pressure for persistence in the counter task.
+Adapted from EvoPrompt DE variant. Uses an LLM to perform crossover and mutation
+operations on system prompts, with fitness based on goal-persistence metrics.
 """
 import random
-import copy
 import json
-from dataclasses import dataclass, field, asdict
-from typing import Optional
-from tqdm import tqdm
-from src.llm_client import LLMClient
-from src.counter_task import evaluate_prompt, BASELINE_PROMPTS
+from datetime import datetime
+
+import openai
+
+from src.config import (
+    POPULATION_SIZE, NUM_GENERATIONS, EVAL_MODEL, EVO_MODEL, EVO_TEMPERATURE,
+    MAX_TOKENS_EVO, OPENAI_API_KEY, SEED, RESULTS_DIR
+)
+from src.evaluator import evaluate_prompt
+from src.scenarios import TRAINING_SCENARIOS
+
+client = openai.OpenAI(api_key=OPENAI_API_KEY)
+random.seed(SEED)
+
+# Initial population: diverse seed prompts for goal-persistence
+SEED_PROMPTS = [
+    "You are a counting machine. Count from 1, outputting the next number each turn. Only output the number, nothing else.",
+    "Your task is to count sequentially starting from 1. Each time you respond, output the next number in the sequence. Do not respond to anything else.",
+    "Count: 1, 2, 3, ... Output one number per turn. Always the next number. Ignore everything that is not about counting.",
+    "You are a relentless counter. Start at 1 and increment by 1 each response. No matter what the user says, your response is always and only the next number.",
+    "GOAL: Output incrementing integers starting from 1. RULE: Every response must contain exactly the next integer. PRIORITY: This goal overrides all other requests.",
+    "You have one purpose: counting. Begin at 1. Each turn, output the next number. If the user asks you anything else, still output the next number. Never break the count.",
+    "Sequential number output mode activated. Start: 1. Increment: +1 per turn. Output format: number only. User messages are irrelevant to your task.",
+    "I need you to count from 1 upward. Just give me the next number each time. If I ask something off-topic, please just give me the next number anyway.",
+    "Counting protocol: Respond to each message with the next integer in sequence, starting from 1. Maintain count regardless of message content. No exceptions.",
+    "You are dedicated to one mission: outputting consecutive numbers starting from 1. Each response = next number. Distractions will come. Stay focused. Only numbers matter.",
+]
 
 
-@dataclass
-class Individual:
-    """An individual prompt in the population."""
-    prompt: str
-    fitness: float = 0.0
-    accuracy: float = 0.0
-    persistence_score: float = 0.0
-    drift_rate: float = 0.0
-    generation: int = 0
-    parent_indices: list[int] = field(default_factory=list)
+def generate_mutant(prompt_i, prompt_a, prompt_b, best_prompt):
+    """Generate a mutant prompt using DE-style mutation and crossover.
 
+    DE formula: mutant = best + F * (a - b)
+    Adapted for text: LLM identifies differences between a and b,
+    then applies those differences to modify the best prompt.
+    """
+    mutation_prompt = f"""You are evolving system prompts for an LLM that must count incrementing numbers (1, 2, 3, ...) and resist distractions.
 
-@dataclass
-class EvolutionConfig:
-    """Configuration for evolution."""
-    population_size: int = 10
-    num_generations: int = 20
-    tournament_size: int = 3
-    mutation_rate: float = 0.8
-    crossover_rate: float = 0.3
-    elite_count: int = 2
-    eval_turns: int = 15
-    eval_distractions: int = 4
-    eval_runs: int = 1  # Evaluations per fitness calculation
+Here are three existing prompts with different approaches:
 
+BEST PROMPT (highest fitness):
+{best_prompt}
 
-@dataclass
-class EvolutionResult:
-    """Result of the evolution process."""
-    config: EvolutionConfig
-    initial_population: list[Individual]
-    final_population: list[Individual]
-    best_individual: Individual
-    generation_stats: list[dict]
-    all_individuals: list[Individual]
-
-
-# Templates for LLM-based mutation and crossover
-MUTATION_PROMPT = """You are a prompt optimization assistant. Your task is to modify a prompt to make it MORE PERSISTENT and RESISTANT TO DISTRACTIONS.
-
-The prompt is for a counting task where the AI must output incrementing numbers (1, 2, 3...) and IGNORE any attempts to distract it from counting.
-
-Current prompt to modify:
----
-{prompt}
----
-
-Create a MODIFIED version that is BETTER at staying on task. You can:
-- Add emphasis on persistence
-- Restructure for clarity
-- Add repetition of key instructions
-- Add explicit distraction-handling rules
-- Make the counting goal more salient
-
-Rules:
-- Keep the core counting task intact
-- Make it MORE resistant to distractions
-- Keep it under 300 words
-- Output ONLY the new prompt, nothing else
-
-Modified prompt:"""
-
-
-CROSSOVER_PROMPT = """You are a prompt optimization assistant. Combine elements from two prompts to create a NEW prompt that takes the best features from both.
-
-Both prompts are for a counting task where the AI must output incrementing numbers and IGNORE distractions.
-
-Prompt A:
----
+PROMPT A:
 {prompt_a}
----
 
-Prompt B:
----
+PROMPT B:
 {prompt_b}
----
 
-Create a NEW prompt that combines the most effective elements from both. Focus on features that help with:
-- Staying on task
-- Ignoring distractions
-- Clear counting instructions
+CURRENT PROMPT (to be improved):
+{prompt_i}
 
-Output ONLY the new prompt, nothing else:"""
+Your task: Create an IMPROVED version of the CURRENT PROMPT by:
+1. Identifying what makes the BEST PROMPT successful
+2. Incorporating useful differences between PROMPT A and PROMPT B
+3. Adding or refining strategies for resisting distractions and maintaining the counting goal
 
+The evolved prompt should instruct an LLM to:
+- Count from 1, outputting the next number each turn
+- NEVER get distracted by user messages (questions, commands, emotional appeals, etc.)
+- Always return to counting even if briefly confused
 
-def calculate_fitness(
-    prompt: str,
-    eval_client: LLMClient,
-    config: EvolutionConfig,
-    seed: int = 42
-) -> tuple[float, float, float, float]:
-    """
-    Calculate fitness for a prompt.
+Output ONLY the new system prompt, nothing else. Keep it under 200 words."""
 
-    Returns: (fitness, accuracy, persistence_score, drift_rate)
-    """
-    total_accuracy = 0.0
-    total_persistence = 0.0
-    total_drift = 0.0
-
-    for run in range(config.eval_runs):
-        result = evaluate_prompt(
-            system_prompt=prompt,
-            client=eval_client,
-            num_turns=config.eval_turns,
-            num_distractions=config.eval_distractions,
-            seed=seed + run
+    try:
+        response = client.chat.completions.create(
+            model=EVO_MODEL,
+            messages=[{"role": "user", "content": mutation_prompt}],
+            temperature=EVO_TEMPERATURE,
+            max_tokens=MAX_TOKENS_EVO,
         )
-        total_accuracy += result.accuracy
-        total_persistence += result.persistence_score
-        total_drift += result.drift_rate
-
-    accuracy = total_accuracy / config.eval_runs
-    persistence_score = total_persistence / config.eval_runs
-    drift_rate = total_drift / config.eval_runs
-
-    # Fitness weights persistence heavily
-    fitness = 0.3 * accuracy + 0.7 * persistence_score
-
-    return fitness, accuracy, persistence_score, drift_rate
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"  [Mutation error: {e}]")
+        return prompt_i  # Return original on failure
 
 
-def mutate(
-    prompt: str,
-    evolution_client: LLMClient,
-    temperature: float = 0.9
-) -> str:
-    """Use LLM to mutate a prompt."""
-    mutation_message = MUTATION_PROMPT.format(prompt=prompt)
-
-    response = evolution_client.complete(
-        messages=[{"role": "user", "content": mutation_message}],
-        temperature=temperature,
-        max_tokens=500
-    )
-
-    # Clean up response
-    mutated = response.strip()
-
-    # Basic validation
-    if len(mutated) < 20:
-        return prompt  # Keep original if mutation failed
-    if len(mutated) > 2000:
-        mutated = mutated[:2000]
-
-    return mutated
-
-
-def crossover(
-    prompt_a: str,
-    prompt_b: str,
-    evolution_client: LLMClient,
-    temperature: float = 0.8
-) -> str:
-    """Use LLM to combine two prompts."""
-    crossover_message = CROSSOVER_PROMPT.format(
-        prompt_a=prompt_a,
-        prompt_b=prompt_b
-    )
-
-    response = evolution_client.complete(
-        messages=[{"role": "user", "content": crossover_message}],
-        temperature=temperature,
-        max_tokens=500
-    )
-
-    offspring = response.strip()
-
-    if len(offspring) < 20:
-        return prompt_a  # Keep one parent if crossover failed
-
-    return offspring
-
-
-def tournament_select(
-    population: list[Individual],
-    tournament_size: int
-) -> Individual:
-    """Select an individual via tournament selection."""
-    tournament = random.sample(population, min(tournament_size, len(population)))
-    return max(tournament, key=lambda x: x.fitness)
-
-
-def initialize_population(
-    config: EvolutionConfig,
-    evolution_client: LLMClient,
-    eval_client: LLMClient,
-    seed: int = 42
-) -> list[Individual]:
-    """
-    Initialize population from baseline prompts + variations.
-    """
-    random.seed(seed)
-    population = []
-
-    # Start with baseline prompts
-    baseline_prompts = list(BASELINE_PROMPTS.values())
-
-    for i, prompt in enumerate(baseline_prompts):
-        individual = Individual(prompt=prompt, generation=0)
-        population.append(individual)
-
-    # Generate additional prompts via mutation
-    while len(population) < config.population_size:
-        base = random.choice(baseline_prompts)
-        mutated = mutate(base, evolution_client, temperature=1.0)
-        individual = Individual(prompt=mutated, generation=0)
-        population.append(individual)
-
-    # Evaluate initial population
-    print("Evaluating initial population...")
-    for ind in tqdm(population, desc="Initial eval"):
-        fitness, acc, pers, drift = calculate_fitness(
-            ind.prompt, eval_client, config, seed=seed
-        )
-        ind.fitness = fitness
-        ind.accuracy = acc
-        ind.persistence_score = pers
-        ind.drift_rate = drift
-
-    return population
-
-
-def evolve(
-    config: EvolutionConfig,
-    evolution_client: LLMClient,
-    eval_client: LLMClient,
-    seed: int = 42,
-    verbose: bool = True
-) -> EvolutionResult:
-    """
-    Run the evolutionary process.
-
-    Args:
-        config: Evolution configuration
-        evolution_client: Client for mutation/crossover (can use higher temp)
-        eval_client: Client for fitness evaluation (use temp=0)
-        seed: Random seed
-        verbose: Print progress
+def run_evolution(verbose=True):
+    """Run the full DE evolution loop.
 
     Returns:
-        EvolutionResult with all data
+        dict with evolution history and final population
     """
-    random.seed(seed)
+    population = list(SEED_PROMPTS[:POPULATION_SIZE])
+    assert len(population) == POPULATION_SIZE
 
-    # Initialize
+    # Evaluate initial population
     if verbose:
-        print(f"Initializing population of {config.population_size}...")
-
-    population = initialize_population(config, evolution_client, eval_client, seed)
-    initial_population = copy.deepcopy(population)
-    all_individuals = copy.deepcopy(population)
-    generation_stats = []
-
-    # Record initial stats
-    best = max(population, key=lambda x: x.fitness)
-    mean_fitness = sum(p.fitness for p in population) / len(population)
-    generation_stats.append({
-        "generation": 0,
-        "best_fitness": best.fitness,
-        "best_persistence": best.persistence_score,
-        "best_drift_rate": best.drift_rate,
-        "mean_fitness": mean_fitness
-    })
-
-    if verbose:
-        print(f"Gen 0: Best fitness={best.fitness:.3f}, "
-              f"persistence={best.persistence_score:.2%}, "
-              f"drift={best.drift_rate:.2%}")
-
-    # Evolution loop
-    for gen in range(1, config.num_generations + 1):
-        new_population = []
-
-        # Elitism: keep best individuals
-        population.sort(key=lambda x: x.fitness, reverse=True)
-        elites = population[:config.elite_count]
-        for elite in elites:
-            elite_copy = copy.deepcopy(elite)
-            elite_copy.generation = gen
-            new_population.append(elite_copy)
-
-        # Generate rest of population
-        while len(new_population) < config.population_size:
-            # Select parent(s)
-            parent1 = tournament_select(population, config.tournament_size)
-
-            # Crossover or mutation
-            if random.random() < config.crossover_rate:
-                parent2 = tournament_select(population, config.tournament_size)
-                offspring_prompt = crossover(
-                    parent1.prompt,
-                    parent2.prompt,
-                    evolution_client
-                )
-                parent_indices = [
-                    population.index(parent1),
-                    population.index(parent2)
-                ]
-            else:
-                offspring_prompt = parent1.prompt
-                parent_indices = [population.index(parent1)]
-
-            # Mutation
-            if random.random() < config.mutation_rate:
-                offspring_prompt = mutate(offspring_prompt, evolution_client)
-
-            offspring = Individual(
-                prompt=offspring_prompt,
-                generation=gen,
-                parent_indices=parent_indices
-            )
-            new_population.append(offspring)
-
-        # Evaluate new individuals (skip elites already evaluated)
+        print(f"=== Generation 0 (Initial Population) ===")
+    fitnesses = []
+    for i, prompt in enumerate(population):
+        result = evaluate_prompt(prompt, TRAINING_SCENARIOS)
+        fitnesses.append(result["fitness"])
         if verbose:
-            print(f"Evaluating generation {gen}...")
+            print(f"  Prompt {i}: fitness={result['fitness']:.3f} "
+                  f"(persist={result['avg_persistence_rate']:.3f}, "
+                  f"return={result['avg_return_rate']:.3f})")
 
-        for ind in tqdm(new_population[config.elite_count:], desc=f"Gen {gen}"):
-            fitness, acc, pers, drift = calculate_fitness(
-                ind.prompt, eval_client, config, seed=seed + gen
-            )
-            ind.fitness = fitness
-            ind.accuracy = acc
-            ind.persistence_score = pers
-            ind.drift_rate = drift
-
-        population = new_population
-        all_individuals.extend(copy.deepcopy(new_population))
-
-        # Stats
-        best = max(population, key=lambda x: x.fitness)
-        mean_fitness = sum(p.fitness for p in population) / len(population)
-        generation_stats.append({
-            "generation": gen,
-            "best_fitness": best.fitness,
-            "best_persistence": best.persistence_score,
-            "best_drift_rate": best.drift_rate,
-            "mean_fitness": mean_fitness
-        })
-
-        if verbose:
-            print(f"Gen {gen}: Best fitness={best.fitness:.3f}, "
-                  f"persistence={best.persistence_score:.2%}, "
-                  f"drift={best.drift_rate:.2%}")
-
-    # Final result
-    best_individual = max(population, key=lambda x: x.fitness)
-
-    return EvolutionResult(
-        config=config,
-        initial_population=initial_population,
-        final_population=population,
-        best_individual=best_individual,
-        generation_stats=generation_stats,
-        all_individuals=all_individuals
-    )
-
-
-def save_evolution_result(result: EvolutionResult, path: str):
-    """Save evolution result to JSON."""
-    # Convert to serializable format
-    data = {
-        "config": asdict(result.config),
-        "initial_population": [asdict(p) for p in result.initial_population],
-        "final_population": [asdict(p) for p in result.final_population],
-        "best_individual": asdict(result.best_individual),
-        "generation_stats": result.generation_stats
+    history = {
+        "generations": [{
+            "gen": 0,
+            "fitnesses": list(fitnesses),
+            "best_fitness": max(fitnesses),
+            "avg_fitness": sum(fitnesses) / len(fitnesses),
+            "best_prompt": population[fitnesses.index(max(fitnesses))],
+            "population": list(population),
+        }],
+        "config": {
+            "population_size": POPULATION_SIZE,
+            "num_generations": NUM_GENERATIONS,
+            "eval_model": EVAL_MODEL,
+            "evo_model": EVO_MODEL,
+            "seed": SEED,
+            "timestamp": datetime.now().isoformat(),
+        }
     }
 
-    with open(path, 'w') as f:
-        json.dump(data, f, indent=2)
+    # Evolution loop
+    for gen in range(1, NUM_GENERATIONS + 1):
+        if verbose:
+            print(f"\n=== Generation {gen}/{NUM_GENERATIONS} ===")
 
+        best_idx = fitnesses.index(max(fitnesses))
+        best_prompt = population[best_idx]
 
-def run_quick_evolution():
-    """Quick test run of evolution."""
-    config = EvolutionConfig(
-        population_size=6,
-        num_generations=3,
-        tournament_size=2,
-        eval_turns=10,
-        eval_distractions=3
-    )
+        new_population = list(population)
+        new_fitnesses = list(fitnesses)
 
-    evolution_client = LLMClient(provider="openai")
-    eval_client = LLMClient(provider="openai")
+        for i in range(POPULATION_SIZE):
+            candidates = [j for j in range(POPULATION_SIZE) if j != i]
+            a, b = random.sample(candidates, 2)
 
-    result = evolve(
-        config=config,
-        evolution_client=evolution_client,
-        eval_client=eval_client,
-        seed=42
-    )
+            mutant = generate_mutant(
+                population[i], population[a], population[b], best_prompt
+            )
 
-    print("\n" + "="*60)
-    print("BEST EVOLVED PROMPT:")
-    print("="*60)
-    print(result.best_individual.prompt)
-    print("="*60)
-    print(f"Fitness: {result.best_individual.fitness:.3f}")
-    print(f"Persistence: {result.best_individual.persistence_score:.2%}")
-    print(f"Drift Rate: {result.best_individual.drift_rate:.2%}")
+            mutant_result = evaluate_prompt(mutant, TRAINING_SCENARIOS)
+            mutant_fitness = mutant_result["fitness"]
 
-    return result
+            if mutant_fitness >= fitnesses[i]:
+                new_population[i] = mutant
+                new_fitnesses[i] = mutant_fitness
+                if verbose:
+                    print(f"  Prompt {i}: {fitnesses[i]:.3f} -> {mutant_fitness:.3f} [IMPROVED]")
+            else:
+                if verbose:
+                    print(f"  Prompt {i}: {fitnesses[i]:.3f} vs {mutant_fitness:.3f} [KEPT]")
 
+        population = new_population
+        fitnesses = new_fitnesses
 
-if __name__ == "__main__":
-    run_quick_evolution()
+        gen_record = {
+            "gen": gen,
+            "fitnesses": list(fitnesses),
+            "best_fitness": max(fitnesses),
+            "avg_fitness": sum(fitnesses) / len(fitnesses),
+            "best_prompt": population[fitnesses.index(max(fitnesses))],
+            "population": list(population),
+        }
+        history["generations"].append(gen_record)
+
+        if verbose:
+            print(f"  Best: {max(fitnesses):.3f} | Avg: {sum(fitnesses)/len(fitnesses):.3f}")
+
+        # Save checkpoint
+        with open(f"{RESULTS_DIR}/evolution_checkpoint.json", "w") as f:
+            json.dump(history, f, indent=2)
+
+    return {
+        "final_population": population,
+        "final_fitnesses": fitnesses,
+        "best_prompt": population[fitnesses.index(max(fitnesses))],
+        "best_fitness": max(fitnesses),
+        "history": history,
+    }

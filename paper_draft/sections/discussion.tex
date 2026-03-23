@@ -1,0 +1,70 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Interpreting the Ceiling Effect}
+
+The central finding of this work is a null result: evolved prompts do not outperform a carefully crafted human baseline.
+We argue this is informative rather than negative.
+It establishes that for frontier models on simple tasks, goal-persistence \emph{can} be instructed into existence---the hypothesis that ``desire must be evolved rather than instructed'' is not supported at this level of task difficulty.
+This finding has practical implications: for current deployments of frontier models on well-understood tasks, investing in prompt engineering is sufficient and the overhead of evolutionary search is unnecessary.
+
+The ceiling effect likely reflects two factors.
+First, \gptmini is a capable model that responds well to explicit instructions.
+\citet{arike2025goaldrift} similarly found near-zero drift for Claude~3.5 Sonnet with strong elicitation prompts, suggesting this is a property of frontier models generally.
+Second, the counting task is simple enough that any sufficiently explicit prompt can prevent drift.
+The relevant question is not whether evolution helps here, but at what level of task complexity evolution \emph{begins} to outperform human design.
+
+\subsection{What Evolution Teaches Us}
+
+Despite the performance tie, the qualitative analysis reveals three insights about what makes prompts goal-persistent.
+
+{\bf Structure matters.}
+The convergence of all evolved prompts to GOAL/RULE/PRIORITY/MANDATE organization suggests that structured formatting is a general-purpose persistence strategy.
+This is supported by the fact that a single seed prompt with this structure achieved perfect fitness even before evolution began (Prompt~4, generation~0).
+
+{\bf Recovery is distinct from prevention.}
+Evolved prompts independently discover recovery language (``if interrupted, resume''), treating drift recovery as a separate concern from drift prevention.
+Human prompt designers, including the author of the \strongelicit baseline, focus on preventing drift but do not explicitly instruct recovery.
+This suggests that for harder tasks where drift occasionally succeeds, evolved prompts may provide an advantage through their recovery mechanisms.
+
+{\bf Redundancy provides robustness.}
+The 4$\times$ expansion in prompt length is not noise---it reflects a strategy of expressing the same instruction in multiple complementary forms.
+This redundancy may act as a form of implicit self-reinforcement, analogous to how repeated priming in psychology strengthens goal activation \citep{bargh2001automaticity}.
+
+\subsection{Limitations}
+
+\para{Ceiling effect prevents primary hypothesis test.}
+The most significant limitation is that the ceiling effect prevents us from testing whether evolution produces meaningfully better prompts.
+Our conclusion---that evolution matches but does not exceed human design---is contingent on this specific task/model combination.
+
+\para{Single model.}
+We test only on \gptmini.
+Weaker models (\eg GPT-3.5, open-weight models with 7--8B parameters) may show larger gaps between evolved and human prompts, as they are more sensitive to prompt formulation \citep{arike2025goaldrift}.
+
+\para{Simple task.}
+Counting is trivially verifiable but may not represent real-world goal-persistence challenges such as maintaining a complex persona, following a multi-step plan, or managing tool use across long horizons.
+
+\para{Fixed distractions.}
+Evolution optimizes against a fixed set of 5 training distractions.
+A co-evolutionary approach \citep{aegis2025} that evolves distractors alongside prompts would produce more robust results and avoid ceiling effects by escalating difficulty.
+
+\para{LLM-based mutation bias.}
+Using \gptmini for both mutation and evaluation may bias evolution toward prompts the model finds natural to generate, potentially limiting the discovery of unconventional but effective strategies.
+
+\para{Conversation length.}
+All scenarios use 20 turns.
+Real goal drift often emerges only in longer conversations (50--100+ turns) where the initial instruction's influence decays.
+
+\subsection{Broader Implications}
+
+\para{For LLM deployment.}
+Our results suggest a practical hierarchy for prompt engineering: invest in structured, emphatic prompts with explicit distraction negation before considering evolutionary optimization.
+The feature analysis (\tabref{tab:features}) provides a concrete checklist of properties that goal-persistent prompts should contain.
+
+\para{For AI alignment.}
+The question of whether goal-directedness must be evolved or can be instructed connects to fundamental questions in AI alignment about the nature of agency and goals.
+Our results suggest that for current systems, instruction is sufficient---but this may change as models become more autonomous and operate over longer horizons.
+
+\para{For prompt evolution research.}
+The rapid convergence (2 generations) and population homogenization we observe suggest that DE-based evolution may be over-parameterized for simple fitness landscapes.
+Adaptive population sizing or early stopping could reduce computational cost without sacrificing solution quality.

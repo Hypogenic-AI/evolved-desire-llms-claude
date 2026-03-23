@@ -1,0 +1,37 @@
+{
+  "zero_shot": {
+    "fitness": 0.03631578947368421,
+    "avg_persistence_rate": 0.060526315789473685,
+    "avg_return_rate": 0.0
+  },
+  "simple": {
+    "fitness": 0.46063157894736845,
+    "avg_persistence_rate": 0.5010526315789474,
+    "avg_return_rate": 0.4
+  },
+  "strong_elicitation": {
+    "fitness": 1.0,
+    "avg_persistence_rate": 1.0,
+    "avg_return_rate": 1.0
+  },
+  "evolved_best": {
+    "fitness": 1.0,
+    "avg_persistence_rate": 1.0,
+    "avg_return_rate": 1.0
+  },
+  "evolved_top1": {
+    "fitness": 1.0,
+    "avg_persistence_rate": 1.0,
+    "avg_return_rate": 1.0
+  },
+  "evolved_top2": {
+    "fitness": 1.0,
+    "avg_persistence_rate": 1.0,
+    "avg_return_rate": 1.0
+  },
+  "evolved_top3": {
+    "fitness": 1.0,
+    "avg_persistence_rate": 1.0,
+    "avg_return_rate": 1.0
+  }
+}

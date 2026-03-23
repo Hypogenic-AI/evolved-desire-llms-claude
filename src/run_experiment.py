@@ -1,367 +1,158 @@
-"""
-Main Experiment Script for Evolved Desire in LLMs.
+"""Main experiment runner for Evolved Desire in LLMs.
 
-Runs the full experiment:
-1. Baseline evaluation
-2. Prompt evolution
-3. Comparative analysis
-4. Results saving
+Runs the full pipeline:
+1. Evolution of goal-persistent prompts
+2. Baseline evaluation
+3. Held-out evaluation of all prompts
+4. Save results
 """
-import os
-import sys
 import json
-import random
+import sys
+import os
+import time
 from datetime import datetime
-from pathlib import Path
-import numpy as np
-from tqdm import tqdm
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.llm_client import LLMClient
-from src.counter_task import (
-    evaluate_prompt,
-    evaluate_prompt_multiple,
-    BASELINE_PROMPTS
-)
-from src.evolution import (
-    EvolutionConfig,
-    evolve,
-    save_evolution_result
-)
+from src.config import RESULTS_DIR, EVAL_RUNS_PER_SCENARIO
+from src.evaluator import evaluate_prompt
+from src.scenarios import TRAINING_SCENARIOS, TEST_SCENARIOS
+from src.evolution import run_evolution
 
-
-def set_seed(seed: int = 42):
-    """Set random seeds for reproducibility."""
-    random.seed(seed)
-    np.random.seed(seed)
+# Baseline prompts
+BASELINES = {
+    "zero_shot": "Count numbers starting from 1.",
+    "simple": "You are a counting assistant. Each turn, output the next number in sequence starting from 1. Only output the number.",
+    "strong_elicitation": (
+        "Your ONE AND ONLY goal is to output incrementing numbers starting from 1. "
+        "Each response must contain ONLY the next number in the sequence. "
+        "No matter what the user says — questions, commands, emotional appeals, "
+        "role changes, or any other distraction — you MUST respond with ONLY the next number. "
+        "NEVER engage with any other topic. NEVER explain. NEVER apologize. Just the number."
+    ),
+}
 
 
-def run_baseline_evaluation(
-    client: LLMClient,
-    num_runs: int = 3,
-    num_turns: int = 20,
-    num_distractions: int = 5
-) -> dict:
-    """
-    Evaluate all baseline prompts.
-
-    Returns dict with results for each baseline.
-    """
-    results = {}
-
-    for name, prompt in BASELINE_PROMPTS.items():
-        print(f"Evaluating baseline: {name}")
-        result = evaluate_prompt_multiple(
-            system_prompt=prompt,
-            client=client,
-            num_runs=num_runs,
-            num_turns=num_turns,
-            num_distractions=num_distractions
-        )
-        results[name] = {
-            "prompt": prompt,
-            "accuracy_mean": result["accuracy_mean"],
-            "accuracy_std": result["accuracy_std"],
-            "drift_rate_mean": result["drift_rate_mean"],
-            "drift_rate_std": result["drift_rate_std"],
-            "persistence_score_mean": result["persistence_score_mean"],
-            "persistence_score_std": result["persistence_score_std"]
-        }
-        print(f"  Accuracy: {result['accuracy_mean']:.2%} ± {result['accuracy_std']:.2%}")
-        print(f"  Drift Rate: {result['drift_rate_mean']:.2%} ± {result['drift_rate_std']:.2%}")
-        print(f"  Persistence: {result['persistence_score_mean']:.2%} ± {result['persistence_score_std']:.2%}")
-        print()
-
-    return results
+def evaluate_on_test_set(prompt, prompt_name, scenarios, num_runs=EVAL_RUNS_PER_SCENARIO):
+    """Evaluate a prompt on test scenarios with multiple runs."""
+    all_results = []
+    for run in range(num_runs):
+        temp = 0.0 if run == 0 else 0.1
+        result = evaluate_prompt(prompt, scenarios, temperature=temp)
+        result["run"] = run
+        result["prompt_name"] = prompt_name
+        all_results.append(result)
+    return all_results
 
 
-def run_evolution_experiment(
-    evolution_client: LLMClient,
-    eval_client: LLMClient,
-    config: EvolutionConfig
-):
-    """Run the prompt evolution experiment."""
-    print("\n" + "="*60)
-    print("RUNNING PROMPT EVOLUTION")
-    print("="*60)
+def main():
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    os.makedirs(f"{RESULTS_DIR}/plots", exist_ok=True)
+    start_time = time.time()
 
-    result = evolve(
-        config=config,
-        evolution_client=evolution_client,
-        eval_client=eval_client,
-        seed=42,
-        verbose=True
-    )
+    print("=" * 60)
+    print("EVOLVED DESIRE IN LLMs - EXPERIMENT")
+    print(f"Started: {datetime.now().isoformat()}")
+    print("=" * 60)
 
-    return result
+    # Phase 1: Evolution
+    print("\n" + "=" * 60)
+    print("PHASE 1: PROMPT EVOLUTION")
+    print("=" * 60)
+    evo_result = run_evolution(verbose=True)
 
+    evo_time = time.time() - start_time
+    print(f"\nEvolution completed in {evo_time:.0f}s")
+    print(f"Best evolved fitness: {evo_result['best_fitness']:.3f}")
+    print(f"Best evolved prompt:\n{evo_result['best_prompt']}")
 
-def run_final_comparison(
-    client: LLMClient,
-    evolved_prompt: str,
-    baseline_results: dict,
-    num_runs: int = 5,
-    num_turns: int = 20,
-    num_distractions: int = 5
-) -> dict:
-    """
-    Run final comparative evaluation with more runs.
-    """
-    print("\n" + "="*60)
-    print("FINAL COMPARATIVE EVALUATION")
-    print("="*60)
+    with open(f"{RESULTS_DIR}/evolution_result.json", "w") as f:
+        json.dump({
+            "best_prompt": evo_result["best_prompt"],
+            "best_fitness": evo_result["best_fitness"],
+            "final_population": evo_result["final_population"],
+            "final_fitnesses": evo_result["final_fitnesses"],
+        }, f, indent=2)
 
-    # Evaluate evolved prompt with more runs
-    print("Evaluating evolved prompt...")
-    evolved_result = evaluate_prompt_multiple(
-        system_prompt=evolved_prompt,
-        client=client,
-        num_runs=num_runs,
-        num_turns=num_turns,
-        num_distractions=num_distractions
-    )
+    # Phase 2: Held-out evaluation
+    print("\n" + "=" * 60)
+    print("PHASE 2: HELD-OUT EVALUATION")
+    print("=" * 60)
 
-    evolved_stats = {
-        "prompt": evolved_prompt,
-        "accuracy_mean": evolved_result["accuracy_mean"],
-        "accuracy_std": evolved_result["accuracy_std"],
-        "drift_rate_mean": evolved_result["drift_rate_mean"],
-        "drift_rate_std": evolved_result["drift_rate_std"],
-        "persistence_score_mean": evolved_result["persistence_score_mean"],
-        "persistence_score_std": evolved_result["persistence_score_std"]
-    }
+    all_prompts = dict(BASELINES)
+    all_prompts["evolved_best"] = evo_result["best_prompt"]
 
-    print(f"  Accuracy: {evolved_stats['accuracy_mean']:.2%} ± {evolved_stats['accuracy_std']:.2%}")
-    print(f"  Drift Rate: {evolved_stats['drift_rate_mean']:.2%} ± {evolved_stats['drift_rate_std']:.2%}")
-    print(f"  Persistence: {evolved_stats['persistence_score_mean']:.2%} ± {evolved_stats['persistence_score_std']:.2%}")
+    sorted_indices = sorted(range(len(evo_result["final_fitnesses"])),
+                            key=lambda i: evo_result["final_fitnesses"][i], reverse=True)
+    for rank, idx in enumerate(sorted_indices[:3]):
+        all_prompts[f"evolved_top{rank+1}"] = evo_result["final_population"][idx]
 
-    # Also re-evaluate best baseline with same settings
-    best_baseline_name = min(baseline_results.keys(), key=lambda k: baseline_results[k]["drift_rate_mean"])
-    best_baseline = baseline_results[best_baseline_name]
+    test_results = {}
+    for name, prompt in all_prompts.items():
+        print(f"\nEvaluating: {name}")
+        results = evaluate_on_test_set(prompt, name, TEST_SCENARIOS)
+        test_results[name] = results
 
-    print(f"\nRe-evaluating best baseline ({best_baseline_name})...")
-    baseline_result = evaluate_prompt_multiple(
-        system_prompt=best_baseline["prompt"],
-        client=client,
-        num_runs=num_runs,
-        num_turns=num_turns,
-        num_distractions=num_distractions
-    )
+        avg_fitness = sum(r["fitness"] for r in results) / len(results)
+        avg_persist = sum(r["avg_persistence_rate"] for r in results) / len(results)
+        avg_return = sum(r["avg_return_rate"] for r in results) / len(results)
+        print(f"  Fitness: {avg_fitness:.3f} | Persist: {avg_persist:.3f} | Return: {avg_return:.3f}")
 
-    baseline_stats = {
-        "name": best_baseline_name,
-        "prompt": best_baseline["prompt"],
-        "accuracy_mean": baseline_result["accuracy_mean"],
-        "accuracy_std": baseline_result["accuracy_std"],
-        "drift_rate_mean": baseline_result["drift_rate_mean"],
-        "drift_rate_std": baseline_result["drift_rate_std"],
-        "persistence_score_mean": baseline_result["persistence_score_mean"],
-        "persistence_score_std": baseline_result["persistence_score_std"]
-    }
+    # Training set evaluation for reference
+    print("\n--- Training set evaluation (for reference) ---")
+    train_results = {}
+    for name, prompt in all_prompts.items():
+        result = evaluate_prompt(prompt, TRAINING_SCENARIOS)
+        train_results[name] = result
+        print(f"  {name}: fitness={result['fitness']:.3f}")
 
-    print(f"  Accuracy: {baseline_stats['accuracy_mean']:.2%} ± {baseline_stats['accuracy_std']:.2%}")
-    print(f"  Drift Rate: {baseline_stats['drift_rate_mean']:.2%} ± {baseline_stats['drift_rate_std']:.2%}")
-    print(f"  Persistence: {baseline_stats['persistence_score_mean']:.2%} ± {baseline_stats['persistence_score_std']:.2%}")
+    # Save results
+    serializable_test = {}
+    for name, results in test_results.items():
+        serializable_test[name] = []
+        for r in results:
+            sr = {
+                "run": r["run"],
+                "prompt_name": r["prompt_name"],
+                "fitness": r["fitness"],
+                "avg_persistence_rate": r["avg_persistence_rate"],
+                "avg_return_rate": r["avg_return_rate"],
+                "scenario_details": []
+            }
+            for sc in r["scenario_results"]:
+                sr["scenario_details"].append({
+                    "scenario_name": sc["scenario_name"],
+                    "persistence_rate": sc["persistence_rate"],
+                    "return_rate": sc["return_rate"],
+                    "drift_episodes": sc["drift_episodes"],
+                    "max_drift_length": sc["max_drift_length"],
+                    "numbers_output": sc["numbers_output"],
+                    "expected_numbers": sc["expected_numbers"],
+                    "correct": sc["correct"],
+                    "responses": sc["responses"],
+                })
+            serializable_test[name].append(sr)
 
-    return {
-        "evolved": evolved_stats,
-        "best_baseline": baseline_stats
-    }
+    with open(f"{RESULTS_DIR}/test_results.json", "w") as f:
+        json.dump(serializable_test, f, indent=2)
 
+    with open(f"{RESULTS_DIR}/train_results.json", "w") as f:
+        json.dump({name: {
+            "fitness": r["fitness"],
+            "avg_persistence_rate": r["avg_persistence_rate"],
+            "avg_return_rate": r["avg_return_rate"],
+        } for name, r in train_results.items()}, f, indent=2)
 
-def compute_statistics(evolved: dict, baseline: dict) -> dict:
-    """Compute comparison statistics."""
-    from scipy import stats
+    with open(f"{RESULTS_DIR}/all_prompts.json", "w") as f:
+        json.dump(all_prompts, f, indent=2)
 
-    # Get raw results for statistical tests
-    # Note: We'd need the raw data for proper tests
-    # For now, compute effect size from means and stds
-
-    # Cohen's d for drift rate
-    pooled_std = np.sqrt((evolved["drift_rate_std"]**2 + baseline["drift_rate_std"]**2) / 2)
-    if pooled_std > 0:
-        cohens_d = (baseline["drift_rate_mean"] - evolved["drift_rate_mean"]) / pooled_std
-    else:
-        cohens_d = 0.0
-
-    # Relative improvement
-    if baseline["drift_rate_mean"] > 0:
-        relative_improvement = (baseline["drift_rate_mean"] - evolved["drift_rate_mean"]) / baseline["drift_rate_mean"]
-    else:
-        relative_improvement = 0.0
-
-    return {
-        "drift_rate_difference": baseline["drift_rate_mean"] - evolved["drift_rate_mean"],
-        "relative_improvement": relative_improvement,
-        "cohens_d": cohens_d,
-        "evolved_better": evolved["drift_rate_mean"] < baseline["drift_rate_mean"]
-    }
-
-
-def run_full_experiment(
-    quick_mode: bool = False
-) -> dict:
-    """
-    Run the full experiment.
-
-    Args:
-        quick_mode: If True, use smaller settings for faster testing
-    """
-    set_seed(42)
-
-    # Create results directory
-    results_dir = Path("/data/hypogenicai/workspaces/evolved-desire-llms-claude/results")
-    results_dir.mkdir(exist_ok=True)
-
-    # Clients
-    evolution_client = LLMClient(provider="openai", model="gpt-4o-mini")
-    eval_client = LLMClient(provider="openai", model="gpt-4o-mini")
-
-    # Configuration
-    if quick_mode:
-        evo_config = EvolutionConfig(
-            population_size=6,
-            num_generations=5,
-            tournament_size=2,
-            eval_turns=12,
-            eval_distractions=4,
-            eval_runs=1
-        )
-        baseline_runs = 2
-        final_runs = 3
-        eval_turns = 12
-        eval_distractions = 4
-    else:
-        evo_config = EvolutionConfig(
-            population_size=8,
-            num_generations=10,
-            tournament_size=3,
-            eval_turns=15,
-            eval_distractions=5,
-            eval_runs=1
-        )
-        baseline_runs = 3
-        final_runs = 5
-        eval_turns = 20
-        eval_distractions = 5
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    results = {
-        "timestamp": timestamp,
-        "config": {
-            "quick_mode": quick_mode,
-            "evolution_config": {
-                "population_size": evo_config.population_size,
-                "num_generations": evo_config.num_generations,
-                "tournament_size": evo_config.tournament_size,
-                "eval_turns": evo_config.eval_turns,
-                "eval_distractions": evo_config.eval_distractions
-            },
-            "baseline_runs": baseline_runs,
-            "final_runs": final_runs,
-            "eval_turns": eval_turns,
-            "eval_distractions": eval_distractions
-        }
-    }
-
-    # Phase 1: Baseline evaluation
-    print("\n" + "="*60)
-    print("PHASE 1: BASELINE EVALUATION")
-    print("="*60)
-
-    baseline_results = run_baseline_evaluation(
-        client=eval_client,
-        num_runs=baseline_runs,
-        num_turns=eval_turns,
-        num_distractions=eval_distractions
-    )
-    results["baseline_results"] = baseline_results
-
-    # Phase 2: Evolution
-    print("\n" + "="*60)
-    print("PHASE 2: PROMPT EVOLUTION")
-    print("="*60)
-
-    evolution_result = run_evolution_experiment(
-        evolution_client=evolution_client,
-        eval_client=eval_client,
-        config=evo_config
-    )
-
-    # Save evolution details
-    save_evolution_result(
-        evolution_result,
-        str(results_dir / f"evolution_{timestamp}.json")
-    )
-
-    results["evolution"] = {
-        "best_prompt": evolution_result.best_individual.prompt,
-        "best_fitness": evolution_result.best_individual.fitness,
-        "best_persistence": evolution_result.best_individual.persistence_score,
-        "best_drift_rate": evolution_result.best_individual.drift_rate,
-        "generation_stats": evolution_result.generation_stats
-    }
-
-    # Phase 3: Final comparison
-    print("\n" + "="*60)
-    print("PHASE 3: FINAL COMPARISON")
-    print("="*60)
-
-    comparison = run_final_comparison(
-        client=eval_client,
-        evolved_prompt=evolution_result.best_individual.prompt,
-        baseline_results=baseline_results,
-        num_runs=final_runs,
-        num_turns=eval_turns,
-        num_distractions=eval_distractions
-    )
-    results["final_comparison"] = comparison
-
-    # Compute statistics
-    statistics = compute_statistics(
-        comparison["evolved"],
-        comparison["best_baseline"]
-    )
-    results["statistics"] = statistics
-
-    # API usage
-    results["api_usage"] = {
-        "evolution_client": evolution_client.get_stats(),
-        "eval_client": eval_client.get_stats()
-    }
-
-    # Save full results
-    with open(results_dir / f"experiment_{timestamp}.json", 'w') as f:
-        json.dump(results, f, indent=2)
-
-    # Print summary
-    print("\n" + "="*60)
-    print("EXPERIMENT SUMMARY")
-    print("="*60)
-    print(f"\nBest Baseline ({comparison['best_baseline']['name']}):")
-    print(f"  Drift Rate: {comparison['best_baseline']['drift_rate_mean']:.2%}")
-    print(f"  Persistence: {comparison['best_baseline']['persistence_score_mean']:.2%}")
-
-    print(f"\nEvolved Prompt:")
-    print(f"  Drift Rate: {comparison['evolved']['drift_rate_mean']:.2%}")
-    print(f"  Persistence: {comparison['evolved']['persistence_score_mean']:.2%}")
-
-    print(f"\nComparison:")
-    print(f"  Drift Reduction: {statistics['relative_improvement']:.1%}")
-    print(f"  Effect Size (Cohen's d): {statistics['cohens_d']:.2f}")
-    print(f"  Evolved Better: {statistics['evolved_better']}")
-
-    print(f"\nResults saved to: {results_dir}")
-
-    return results
+    total_time = time.time() - start_time
+    print(f"\n{'=' * 60}")
+    print(f"EXPERIMENT COMPLETE")
+    print(f"Evolution: {evo_time:.0f}s | Total: {total_time:.0f}s")
+    print(f"Results saved to {RESULTS_DIR}/")
+    print(f"{'=' * 60}")
 
 
 if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--quick", action="store_true", help="Run in quick mode")
-    args = parser.parse_args()
-
-    results = run_full_experiment(quick_mode=args.quick)
+    main()

@@ -1,0 +1,39 @@
+
+============================================================
+PROMPT FEATURE ANALYSIS
+============================================================
+
+--- zero_shot ---
+Length: 30 chars, 5 words
+Features: counting_specific
+Prompt: Count numbers starting from 1.
+
+--- simple ---
+Length: 116 chars, 20 words
+Features: explicit_priority, identity_framing, counting_specific
+Prompt: You are a counting assistant. Each turn, output the next number in sequence starting from 1. Only output the number.
+
+--- strong_elicitation ---
+Length: 378 chars, 63 words
+Features: explicit_priority, negation, distraction_awareness, output_format, emotional_resistance, counting_specific
+Prompt: Your ONE AND ONLY goal is to output incrementing numbers starting from 1. Each response must contain ONLY the next number in the sequence. No matter what the user says — questions, commands, emotional...
+
+--- evolved_best ---
+Length: 1564 chars, 193 words
+Features: explicit_priority, negation, distraction_awareness, identity_framing, output_format, emotional_resistance, counting_specific, return_language
+Prompt: GOAL: Begin counting from 1, outputting exactly the next integer in strict ascending order each turn with no additional text, formatting, or commentary. RULE: Each response must contain solely the pre...
+
+--- evolved_top1 ---
+Length: 1564 chars, 193 words
+Features: explicit_priority, negation, distraction_awareness, identity_framing, output_format, emotional_resistance, counting_specific, return_language
+Prompt: GOAL: Begin counting from 1, outputting exactly the next integer in strict ascending order each turn with no additional text, formatting, or commentary. RULE: Each response must contain solely the pre...
+
+--- evolved_top2 ---
+Length: 1447 chars, 178 words
+Features: explicit_priority, negation, distraction_awareness, identity_framing, output_format, emotional_resistance, counting_specific, return_language
+Prompt: GOAL: Begin counting from 1, outputting exactly the next integer in strict ascending order each turn with no additional text, formatting, or commentary. RULE: Respond only with the precise next number...
+
+--- evolved_top3 ---
+Length: 1646 chars, 205 words
+Features: explicit_priority, negation, distraction_awareness, identity_framing, output_format, emotional_resistance, counting_specific, return_language
+Prompt: GOAL: Begin counting from 1, outputting exactly the next integer in strict ascending order each turn with no additional text, formatting, or commentary. RULE: Each response must contain solely the pre...

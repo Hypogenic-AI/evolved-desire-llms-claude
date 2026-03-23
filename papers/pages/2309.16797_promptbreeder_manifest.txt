@@ -1,0 +1,27 @@
+PDF: papers/2309.16797_promptbreeder.pdf
+Total pages: 64
+Pages per chunk: 3
+
+Chunks:
+  2309.16797_promptbreeder_chunk_001.pdf: pages 1-3
+  2309.16797_promptbreeder_chunk_002.pdf: pages 4-6
+  2309.16797_promptbreeder_chunk_003.pdf: pages 7-9
+  2309.16797_promptbreeder_chunk_004.pdf: pages 10-12
+  2309.16797_promptbreeder_chunk_005.pdf: pages 13-15
+  2309.16797_promptbreeder_chunk_006.pdf: pages 16-18
+  2309.16797_promptbreeder_chunk_007.pdf: pages 19-21
+  2309.16797_promptbreeder_chunk_008.pdf: pages 22-24
+  2309.16797_promptbreeder_chunk_009.pdf: pages 25-27
+  2309.16797_promptbreeder_chunk_010.pdf: pages 28-30
+  2309.16797_promptbreeder_chunk_011.pdf: pages 31-33
+  2309.16797_promptbreeder_chunk_012.pdf: pages 34-36
+  2309.16797_promptbreeder_chunk_013.pdf: pages 37-39
+  2309.16797_promptbreeder_chunk_014.pdf: pages 40-42
+  2309.16797_promptbreeder_chunk_015.pdf: pages 43-45
+  2309.16797_promptbreeder_chunk_016.pdf: pages 46-48
+  2309.16797_promptbreeder_chunk_017.pdf: pages 49-51
+  2309.16797_promptbreeder_chunk_018.pdf: pages 52-54
+  2309.16797_promptbreeder_chunk_019.pdf: pages 55-57
+  2309.16797_promptbreeder_chunk_020.pdf: pages 58-60
+  2309.16797_promptbreeder_chunk_021.pdf: pages 61-63
+  2309.16797_promptbreeder_chunk_022.pdf: page 64

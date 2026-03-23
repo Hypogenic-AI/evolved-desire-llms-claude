@@ -1,16 +1,30 @@
 Resource finding phase completed successfully.
-Timestamp: 2024-12-22T00:41:00+00:00
-Papers downloaded: 9
-Datasets documented: 5
-Repositories cloned: 5
+Timestamp: 2026-03-23T20:15:00+00:00
+Papers downloaded: 16
+Datasets downloaded: 3 (IFEval, GSM8K, BBH)
+Repositories cloned: 5 (EvoPrompt, OPRO, TaskTracker, BIG-Bench-Hard, Prompt-Day-Care)
 
 Research Topic: Evolved Desire in LLMs
-Hypothesis: Prompts evolved under selection pressure for goal-persistence in LLMs will result in less drift from the original task compared to standard prompts, suggesting that persistent "desire" cannot be simply instructed but must be evolved.
+Hypothesis: Prompts for LLMs that are evolved under selection pressure for goal-persistence will result in less drift and greater ability to return to a goal after distraction, compared to prompts written by humans or generated without such selection.
 
 Resources Summary:
-- Papers: Goal drift detection, prompt evolution (EA-based and LLM-based), instruction adherence
-- Datasets: TaskTracker (500K+), IFEval, Big-Bench-Hard, LLMBar, GSM8K
-- Code: TaskTracker, EvoPrompt, OPRO, BIG-Bench-Hard, Prompt-Day-Care
+- Papers: 16 papers across goal drift (3), prompt evolution EA-based (6), LLM optimization (3), co-evolutionary defense (3), long-term planning (1)
+- Deep-read: 4 papers (TaskTracker, EvoPrompt, Goal Drift, AEGIS)
+- Datasets: IFEval (541 prompts), GSM8K (8.8K), BBH (23 tasks, ~250 each)
+- Code: EvoPrompt (DE/GA evolution), OPRO (LLM optimization), TaskTracker (drift detection with pre-trained probes), BBH (benchmarks), Prompt-Day-Care (PromptBreeder)
+
+Key Findings:
+1. No existing work directly evolves prompts for goal-persistence — this is the research gap
+2. EvoPrompt DE variant is best framework to adapt (robust to poor init, explorative)
+3. TaskTracker provides activation-based drift measurement usable as fitness signal
+4. AEGIS demonstrates co-evolutionary approach produces more robust prompts than static optimization
+5. Goal Drift paper provides formal metrics (GDactions, GDinaction) and shows strong elicitation helps but doesn't eliminate drift
+
+Recommended Approach:
+- Evolve system prompts using EvoPrompt DE with drift-based fitness function
+- Measure drift using TaskTracker activation deltas (white-box) or GD scores (black-box)
+- Consider co-evolutionary enhancement (evolve distractors alongside persistent prompts)
+- Baseline against human-designed "strong elicitation" prompts
 
 See literature_review.md for comprehensive synthesis.
 See resources.md for full resource catalog.

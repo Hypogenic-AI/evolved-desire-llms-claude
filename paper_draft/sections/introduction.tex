@@ -1,0 +1,29 @@
+\section{Introduction}
+\label{sec:intro}
+
+LLM agents deployed in production---customer service bots, autonomous coding assistants, long-running research workflows---share a common failure mode: they drift from their assigned goals when context pulls them elsewhere.
+A customer service agent asked to help with a refund may be drawn into an unrelated philosophical discussion; a coding assistant maintaining a test suite may be lured into refactoring unrelated code.
+This \emph{goal drift} is not a matter of capability but of persistence: the model can perform the task, yet fails to maintain focus on it.
+
+Goal drift is well-documented \citep{arike2025goaldrift, abdelnabi2024tasktracker} but poorly addressed.
+Existing work either measures drift without optimizing against it, or optimizes prompts for task accuracy without considering persistence.
+The prompt evolution literature---\evoprompt \citep{guo2024evoprompt}, \promptbreeder \citep{fernando2024promptbreeder}, \opro \citep{yang2023opro}---has shown that evolutionary algorithms can discover surprisingly effective prompt structures, achieving improvements of up to 28 percentage points over human-designed prompts on classification tasks.
+Yet none of these methods have been applied with a fitness function that selects for goal-persistence.
+
+{\bf Can selection pressure produce ``desire''?} We ask whether evolutionary optimization can produce prompts that induce a form of goal-directedness in LLMs---not merely instruction-following, but the ability to \emph{return} to a goal after distraction, resist manipulation, and maintain focus across extended interactions. If so, this provides both a practical tool for improving LLM reliability and theoretical insight into how desire-like properties emerge from selection pressure.
+
+We introduce \ours, a framework that adapts Differential Evolution \citep{guo2024evoprompt} to optimize system prompts for goal-persistence.
+We evaluate on a counting-through-distractions benchmark where task performance is trivially measurable and the only challenge is persistence.
+Our fitness function combines \persistence (fraction of turns with correct output) and \returnrate (fraction of successful recoveries after drift episodes), weighting the former at 0.6 and the latter at 0.4.
+
+Our main finding is nuanced: evolution works rapidly (converging to ceiling fitness in 2 generations) but does not outperform a carefully crafted human prompt on \gptmini.
+Both evolved and \strongelicit prompts achieve perfect 1.000 fitness across all held-out test scenarios.
+However, the evolved prompts are qualitatively richer, containing 8 of 8 measured goal-persistence features versus 6 of 8 for the human baseline, and independently discovering recovery language absent from all human designs.
+
+In summary, our main contributions are:
+\begin{itemize}[leftmargin=*,itemsep=0pt,topsep=0pt]
+    \item We propose \evodesire, the first application of evolutionary prompt optimization with a goal-persistence fitness function, bridging the gap between prompt evolution and goal drift research.
+    \item We design a counting-through-distractions benchmark with 10 scenarios spanning informational, emotional, authoritative, adversarial, and deceptive distraction categories, with clean train/test separation.
+    \item We conduct a systematic comparison showing that evolution and strong human elicitation achieve identical ceiling performance on \gptmini ($d = 0.000$), establishing a lower bound on the task difficulty at which evolution becomes necessary.
+    \item We identify qualitative features of evolved prompts---structured sections, recovery language, redundancy as strategy---that may prove beneficial in harder settings where the ceiling effect does not hold.
+\end{itemize}

@@ -1,0 +1,13 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We introduced \evodesire, the first framework to apply evolutionary prompt optimization with a goal-persistence fitness function.
+Using Differential Evolution on a counting-through-distractions benchmark, we found that evolution converges rapidly (2 generations to ceiling fitness) but does not outperform a well-crafted human ``strong elicitation'' prompt on \gptmini---both achieve perfect scores on held-out test scenarios ($d = 0.000$).
+Despite this ceiling effect, evolution discovers qualitatively richer prompt structures: 8 of 8 goal-persistence features including recovery language absent from all human designs, organized into structured GOAL/RULE/PRIORITY sections, and approximately 4$\times$ longer through deliberate redundancy.
+
+The key takeaway is that for frontier models on simple tasks, desire \emph{can} be instructed into existence, but the structures evolution discovers---particularly recovery language and structured section organization---provide a blueprint for prompt design in harder settings.
+
+Three directions for future work emerge directly from our findings.
+First, testing on weaker models (GPT-3.5, Llama-3 8B) where the ceiling is lower should reveal whether evolution provides a genuine performance advantage.
+Second, co-evolutionary approaches that evolve distractors alongside prompts \citep{aegis2025} would prevent ceiling effects by escalating task difficulty.
+Third, extending to harder tasks---multi-step planning, long-horizon tool use, complex persona maintenance---would test whether the evolved prompt features we identify (\eg recovery language) causally contribute to persistence or are merely correlated.

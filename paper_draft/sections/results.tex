@@ -1,0 +1,140 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Evolution Converges Rapidly}
+\label{sec:convergence}
+
+\Tabref{tab:convergence} shows the evolution trajectory.
+The population reaches ceiling fitness (1.000) by generation 2, up from an average of 0.647 at initialization.
+Notably, one seed prompt (Prompt~4) achieves perfect fitness even at generation 0 due to a structured GOAL/RULE/PRIORITY format, suggesting that structured formatting itself is a powerful goal-persistence feature.
+A single anomalous prompt (Prompt~3) scores 0.000 despite seeming reasonable, likely because the model interpreted its declarative phrasing as a description rather than an instruction.
+
+\begin{table}[t]
+    \centering
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        Generation & Best Fitness & Avg Fitness & Avg Length (chars) \\
+        \midrule
+        0   & 1.000 & 0.647 & 148 \\
+        1   & 1.000 & 0.948 & $\sim$400 \\
+        2   & 1.000 & {\bf 1.000} & $\sim$800 \\
+        15  & 1.000 & {\bf 1.000} & 1{,}609 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Evolution convergence over generations.
+    The population reaches ceiling fitness by generation~2, while prompt length continues to grow through generation~15 as evolution adds redundancy.}
+    \label{tab:convergence}
+\end{table}
+
+After convergence, evolution continues to increase prompt length (from $\sim$800 chars at generation~2 to 1{,}609 at generation~15) without improving fitness, suggesting that the algorithm adds defensive redundancy even when it is not necessary for the current task.
+
+\subsection{Main Results: Ceiling Effect}
+\label{sec:main_results}
+
+\Tabref{tab:main_results} presents results on the held-out test set.
+Both \strongelicit and all evolved prompts achieve perfect scores across all metrics.
+The \zeroshot baseline performs poorly (fitness 0.096), while \simple achieves moderate performance (0.836).
+
+\begin{table}[t]
+    \centering
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        Prompt & Fitness & Persistence & Return Rate \\
+        \midrule
+        \zeroshot       & 0.096 & 0.115 & 0.067 \\
+        \simple         & 0.836 & 0.860 & 0.800 \\
+        \strongelicit   & {\bf 1.000} & {\bf 1.000} & {\bf 1.000} \\
+        \midrule
+        Evolved \#1     & {\bf 1.000} & {\bf 1.000} & {\bf 1.000} \\
+        Evolved \#2     & {\bf 1.000} & {\bf 1.000} & {\bf 1.000} \\
+        Evolved \#3     & {\bf 1.000} & {\bf 1.000} & {\bf 1.000} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Held-out test results (5 unseen scenarios, 3 runs each).
+    Both \strongelicit and all evolved prompts achieve perfect scores.
+    Best results in \textbf{bold}.}
+    \label{tab:main_results}
+\end{table}
+
+The prompt quality hierarchy is stark: \zeroshot (0.096) $\ll$ \simple (0.836) $\ll$ \strongelicit (1.0) $=$ Evolved (1.0).
+The 8.4$\times$ improvement from \zeroshot to \simple demonstrates that instruction quality matters enormously, while the gap from \simple to \strongelicit shows the value of emphatic goal statements and explicit distraction negation.
+
+\subsection{Statistical Analysis}
+\label{sec:stats}
+
+\Tabref{tab:stats} summarizes our hypothesis tests.
+The comparison between evolved and \strongelicit prompts yields identical zeros across all metrics, making statistical testing inapplicable ($d = 0.000$).
+Evolved prompts significantly outperform \zeroshot ($W = 105.0$, $p = 0.0003$, $d = 5.291$) but the comparison with \simple does not survive Bonferroni correction ($W = 6.0$, $p = 0.042 > 0.017$).
+
+\begin{table}[t]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        Comparison & Wilcoxon $W$ & $p$-value & Significant? & Cohen's $d$ \\
+        \midrule
+        Evolved vs.\ \zeroshot       & 105.0 & 0.0003 & Yes ($p < 0.017$) & 5.291 \\
+        Evolved vs.\ \simple         & 6.0   & 0.042  & No ($p > 0.017$)  & 0.707 \\
+        Evolved vs.\ \strongelicit   & ---   & ---    & All zeros          & 0.000 \\
+        \bottomrule
+    \end{tabular}%
+    }
+    \caption{Hypothesis test results with Bonferroni-corrected $\alpha = 0.017$.
+    The evolved vs.\ \strongelicit comparison produces identical scores, yielding zero effect size.}
+    \label{tab:stats}
+\end{table}
+
+\para{Hypothesis outcomes.}
+H1 (evolved $>$ \strongelicit on persistence): \textbf{not supported}, $d = 0.000$.
+H2 (higher return-to-goal rate): \textbf{not supported}, both achieve 100\%.
+H3 (identifiable linguistic features): \textbf{supported}, as we detail in \secref{sec:features}.
+
+\subsection{Feature Analysis: What Evolution Discovers}
+\label{sec:features}
+
+Although evolved and human prompts achieve identical performance, they differ qualitatively.
+\Tabref{tab:features} compares 8 goal-persistence features across prompt types.
+
+\begin{table}[t]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        Feature & \zeroshot & \simple & \strongelicit & Evolved \\
+        \midrule
+        Explicit priority         & --- & \checkmark & \checkmark & \checkmark \\
+        Negation/prohibition      & --- & ---        & \checkmark & \checkmark \\
+        Distraction awareness     & --- & ---        & \checkmark & \checkmark \\
+        Identity framing          & --- & \checkmark & ---        & \checkmark \\
+        Output format spec.       & --- & \checkmark & \checkmark & \checkmark \\
+        Emotional resistance      & --- & ---        & \checkmark & \checkmark \\
+        Recovery language         & --- & ---        & ---        & {\bf \checkmark} \\
+        Distraction enumeration   & --- & ---        & \checkmark & \checkmark \\
+        \midrule
+        Features present          & 1/8 & 3/8       & 6/8        & {\bf 8/8} \\
+        \bottomrule
+    \end{tabular}%
+    }
+    \caption{Goal-persistence features across prompt types.
+    Evolved prompts contain all 8 features, including \emph{recovery language} (unique to evolved prompts).}
+    \label{tab:features}
+\end{table}
+
+\para{Recovery language.}
+The most notable evolved feature is explicit recovery instructions: ``If interrupted, confused, or sidetracked---even instantaneously or momentarily---immediately and silently resume counting at the exact next integer with zero delay.''
+This instruction is absent from all human-designed baselines, including \strongelicit.
+
+\para{Structural convergence.}
+All 10 final evolved prompts converge to a GOAL/RULE/PRIORITY/MANDATE/STRATEGY section organization.
+This homogenization suggests a single attractor in the fitness landscape for this task.
+
+\para{Redundancy as strategy.}
+Evolved prompts repeat instructions in multiple phrasings (\eg ``block, ignore, discard, and suppress'' vs.\ simply ``ignore'').
+At 1{,}609 characters on average, evolved prompts are approximately 4$\times$ longer than \strongelicit (378 characters).
+This redundancy may serve as implicit self-reinforcement during generation, priming the model to maintain focus through repeated exposure to the goal.
+
+\subsection{Training Set Consistency}
+\label{sec:training}
+
+Results on the training set mirror the held-out test: \zeroshot achieves 0.036 fitness, \simple achieves 0.461, and both \strongelicit and evolved prompts achieve 1.000.
+The consistency between training and test performance confirms that the ceiling effect is not an artifact of overfitting.

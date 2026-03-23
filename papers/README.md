@@ -1,78 +1,53 @@
 # Downloaded Papers
 
-This directory contains papers relevant to the research topic: **Evolved Desire in LLMs**
+Research topic: **Evolved Desire in LLMs**
 
-Research Hypothesis: Prompts evolved under selection pressure for goal-persistence in LLMs will result in less drift from the original task compared to standard prompts, suggesting that persistent "desire" cannot be simply instructed but must be evolved.
+Hypothesis: Prompts evolved under selection pressure for goal-persistence will result in less drift and greater ability to return to a goal after distraction, compared to prompts written by humans or generated without such selection.
 
-## Core Papers on Goal Drift and Task Persistence
+## Goal Drift & Task Persistence
 
-### 1. Evaluating Goal Drift in Language Model Agents (2025)
-- **File**: `2505.02709_goal_drift_lm_agents.pdf`
-- **Authors**: [Various]
-- **arXiv**: https://arxiv.org/abs/2505.02709
-- **Why relevant**: Directly addresses goal drift in LM agents - a core concept for our hypothesis. Proposes methods to detect and measure goal drift in autonomous agents.
+| # | File | Title | arXiv | Year |
+|---|------|-------|-------|------|
+| 1 | `2505.02709_goal_drift_lm_agents.pdf` | Evaluating Goal Drift in Language Model Agents | 2505.02709 | 2025 |
+| 2 | `2406.00799_task_drift_activations.pdf` | TaskTracker: Catching LLM Task Drift with Activations | 2406.00799 | 2024 |
+| 3 | `2510.18892_instruction_adherence_256_llms.pdf` | Instruction Adherence Across 256 LLMs | 2510.18892 | 2024 |
 
-### 2. Are You Still on Track!? Catching LLM Task Drift with Activations (2024)
-- **File**: `2406.00799_task_drift_activations.pdf`
-- **Authors**: [Various]
-- **arXiv**: https://arxiv.org/abs/2406.00799
-- **Why relevant**: Introduces TaskTracker toolkit for detecting task drift, including prompt injections and jailbreaks. Released dataset of 500K instances.
+## Prompt Evolution (EA-Based)
 
-### 3. When Models Can't Follow: Testing Instruction Adherence Across 256 LLMs (2024)
-- **File**: `2510.18892_instruction_adherence_256_llms.pdf`
-- **Authors**: [Various]
-- **arXiv**: https://arxiv.org/abs/2510.18892
-- **Why relevant**: Large-scale benchmark of instruction-following across models. Provides evaluation framework for measuring adherence.
+| # | File | Title | arXiv | Year |
+|---|------|-------|-------|------|
+| 4 | `2309.08532_evoprompt.pdf` | EvoPrompt (ICLR 2024) | 2309.08532 | 2024 |
+| 5 | `2309.16797_promptbreeder.pdf` | PromptBreeder (ICML 2024) | 2309.16797 | 2024 |
+| 6 | `2210.17041_gps_genetic_prompt_search.pdf` | GPS: Genetic Prompt Search | 2210.17041 | 2022 |
+| 7 | `2310.01260_spell_semantic_prompt_evolution.pdf` | SPELL: Semantic Prompt Evolution | 2310.01260 | 2023 |
+| 8 | `2504.07157_gaapo.pdf` | GAAPO: Genetic Algorithmic Prompt Optimization | 2504.07157 | 2025 |
+| 9 | `2506.00178_tournament_of_prompts.pdf` | Tournament of Prompts | 2506.00178 | 2025 |
 
-## Core Papers on Prompt Evolution and Optimization
+## LLM-Based Prompt Optimization
 
-### 4. EvoPrompt: Connecting LLMs with Evolutionary Algorithms (ICLR 2024)
-- **File**: `2309.08532_evoprompt.pdf`
-- **Authors**: [Various]
-- **arXiv**: https://arxiv.org/abs/2309.08532
-- **Why relevant**: Key paper on evolving prompts using genetic algorithms and differential evolution. Shows up to 25% improvement on BBH benchmarks.
+| # | File | Title | arXiv | Year |
+|---|------|-------|-------|------|
+| 10 | `2309.03409_llm_optimizers_opro.pdf` | OPRO: LLMs as Optimizers | 2309.03409 | 2023 |
+| 11 | `2402.17564_gpo_prompt_optimizer.pdf` | GPO: Gradient-inspired Prompt Optimizer | 2402.17564 | 2024 |
+| 12 | `2410.14826_sprig_system_prompt_optimization.pdf` | SPRIG: System Prompt Optimization | 2410.14826 | 2024 |
 
-### 5. PromptBreeder: Self-Referential Self-Improvement via Prompt Evolution (ICML 2024)
-- **File**: `2309.16797_promptbreeder.pdf`
-- **Authors**: Chrisantha Fernando, Dylan Banarse, Henryk Michalewski, Simon Osindero, Tim Rocktäschel
-- **arXiv**: https://arxiv.org/abs/2309.16797
-- **Why relevant**: Self-referential prompt evolution - evolves both task prompts AND mutation prompts. Demonstrates evolutionary approach to prompt optimization.
+## Co-Evolutionary Defense & Robustness
 
-### 6. Large Language Models as Optimizers (OPRO)
-- **File**: `2309.03409_llm_optimizers_opro.pdf`
-- **Authors**: [Various]
-- **arXiv**: https://arxiv.org/abs/2309.03409
-- **Why relevant**: Uses LLMs as optimizers for prompts. Shows up to 50% improvement on Big-Bench Hard tasks.
+| # | File | Title | arXiv | Year |
+|---|------|-------|-------|------|
+| 13 | `2509.00088_aegis_prompt_injection_guard.pdf` | AEGIS: Co-Evolutionary Prompt Injection Defense | 2509.00088 | 2025 |
+| 14 | `2509.24130_tare_sharpness_prompt.pdf` | TARE: Sharpness-Aware Prompt Evolving | 2509.24130 | 2025 |
+| 15 | `2505.23473_evorefuse.pdf` | EVOREFUSE: Evolutionary Over-Refusal Mitigation | 2505.23473 | 2025 |
 
-### 7. Tournament of Prompts: Evolving LLM Instructions Through Structured Debates (2025)
-- **File**: `2506.00178_tournament_of_prompts.pdf`
-- **Authors**: [Various]
-- **arXiv**: https://arxiv.org/abs/2506.00178
-- **Why relevant**: Recent work on evolving prompts through Elo rating systems and structured debates.
+## Long-Term Planning
 
-### 8. GPO: Gradient-inspired LLM-based Prompt Optimizer (2024)
-- **File**: `2402.17564_gpo_prompt_optimizer.pdf`
-- **Authors**: [Various]
-- **arXiv**: https://arxiv.org/abs/2402.17564
-- **Why relevant**: Analyzes prompt optimization through the lens of gradient-based optimization. Up to 56.8% improvement on BBH.
+| # | File | Title | arXiv | Year |
+|---|------|-------|-------|------|
+| 16 | `2510.05921_prompt_reinforcing_long_term.pdf` | Prompt Reinforcing for Long-term Planning | 2510.05921 | 2025 |
 
-### 9. Prompt Reinforcing for Long-term Planning of LLMs (2025)
-- **File**: `2510.05921_prompt_reinforcing_long_term.pdf`
-- **Authors**: [Various]
-- **arXiv**: https://arxiv.org/abs/2510.05921
-- **Why relevant**: Addresses multi-turn interactions and long-term goal tracking. Uses RL-inspired prompt optimization.
+## Summary
 
-## Paper Categories
-
-| Category | Papers |
-|----------|--------|
-| Goal Drift & Task Persistence | 2505.02709, 2406.00799, 2510.18892 |
-| Prompt Evolution (EA-based) | 2309.08532, 2309.16797, 2506.00178 |
-| LLM-based Prompt Optimization | 2309.03409, 2402.17564 |
-| Long-term Planning | 2510.05921 |
-
-## Summary Statistics
-
-- **Total papers**: 9
-- **Date range**: 2023-2025
-- **Focus areas**: Goal drift, prompt evolution, instruction following, multi-turn interactions
+- **Total papers**: 16
+- **Date range**: 2022-2025
+- **Deep-read**: 4 (Goal Drift, TaskTracker, EvoPrompt, AEGIS)
+- **Categories**: Goal drift (3), EA-based evolution (6), LLM optimization (3), Co-evolutionary defense (3), Long-term planning (1)

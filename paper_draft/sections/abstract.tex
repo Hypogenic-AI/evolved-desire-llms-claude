@@ -1,0 +1,9 @@
+Large language model agents systematically drift from assigned goals when exposed to distracting context, limiting their reliability in long-running deployments.
+While prior work has optimized prompts for task accuracy and measured goal drift separately, no existing approach applies evolutionary selection pressure specifically to produce goal-persistent system prompts.
+We introduce \evodesire, a framework that adapts Differential Evolution to optimize LLM system prompts for goal-persistence rather than task performance.
+Using a counting-through-distractions benchmark with 10 distraction scenarios (5 training, 5 held-out), we evolve prompts on \gptmini and evaluate against three human-designed baselines.
+Evolution converges rapidly: the population reaches ceiling fitness (1.0) within 2 generations.
+However, a carefully crafted human ``strong elicitation'' prompt matches evolved prompt performance on both training and held-out test scenarios, achieving identical perfect scores ($d = 0.000$).
+Despite this ceiling effect, evolved prompts are qualitatively distinct---approximately 4$\times$ longer, organized into structured sections (GOAL/RULE/PRIORITY/MANDATE), and containing 8 of 8 measured goal-persistence features versus 6 of 8 for the human baseline.
+Notably, evolution independently discovers \emph{recovery language} (``if interrupted, immediately resume''), a feature absent from all human-designed prompts.
+Our results establish that for frontier models on simple tasks, goal-persistence can be instructed into existence, but suggest that evolution may become necessary for weaker models, harder tasks, or longer conversations.

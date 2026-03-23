@@ -1,0 +1,25 @@
+\section{Related Work}
+\label{sec:related}
+
+Our work sits at the intersection of three research areas: goal drift in LLM agents, evolutionary prompt optimization, and co-evolutionary defense against prompt manipulation.
+
+\para{Goal drift and task persistence.}
+\citet{arike2025goaldrift} formally define goal drift in autonomous LLM agents, distinguishing between drift by commission (actively pursuing misaligned goals) and drift by omission (failing to divest from misaligned positions).
+Their key finding---that ``strong elicitation'' prompts with emphatic goal statements significantly reduce drift---directly motivates our work: if prompt wording matters, can evolution find better wordings than humans?
+\citet{abdelnabi2024tasktracker} detect task drift using activation deltas between hidden states before and after processing external data, achieving ROC AUC $\geq$0.994 across multiple models.
+Their activation-based approach suggests an alternative fitness signal for future evolution work, though it requires white-box model access.
+Unlike these papers, which measure drift but do not optimize against it, we use drift metrics as a fitness function for evolutionary prompt search.
+
+\para{Evolutionary prompt optimization.}
+\evoprompt \citep{guo2024evoprompt} applies genetic algorithms (GA) and Differential Evolution (DE) to prompt optimization using LLMs as crossover and mutation operators.
+DE is more robust to poor initialization and generates more diverse prompts, making it our preferred variant since we do not know \emph{a priori} what good goal-persistent prompts look like.
+\promptbreeder \citep{fernando2024promptbreeder} extends this with self-referential evolution, simultaneously evolving task-prompts and mutation-prompts.
+\opro \citep{yang2023opro} takes an alternative approach, presenting LLMs with instruction-score pairs and asking for improvements without explicit evolutionary operators.
+Additional work includes \textsc{GPS} \citep{xu2022gps} for genetic prompt search, \textsc{SPELL} \citep{gao2023spell} for semantic prompt mutations, \textsc{SPRIG} \citep{srinivasan2024sprig} for system prompt optimization, \textsc{TARE} \citep{tare2025} for robustness-aware evolution, and \textsc{GAAPO} \citep{gaapo2025} for GA-based prompt optimization.
+All of these methods optimize for task accuracy; we are the first to apply evolutionary prompt optimization with a goal-persistence fitness function.
+
+\para{Co-evolutionary defense.}
+\aegis \citep{aegis2025} uses a GAN-inspired co-evolutionary framework where attacker and defender prompt agents alternate optimization.
+Their evolved defense prompts achieve 84\% true positive rate versus 64\% for human-crafted prompts, demonstrating that evolution can discover robustness properties that humans miss.
+\textsc{EvoRefuse} \citep{evorefuse2025} applies evolutionary optimization to mitigate LLM over-refusal, the opposite extreme of goal drift.
+Building on these ideas, our work replaces the attacker/defender framing with a distraction/persistence framing, and demonstrates that while evolution discovers richer prompt structures, the performance advantage depends on task difficulty.
