@@ -1,0 +1,28 @@
+idea:
+  title: Evolved desire in LLMs
+  domain: artificial_intelligence
+  hypothesis: 'Prompts for LLMs that are evolved under selection pressure for goal-persistence
+    will result in less drift and greater ability to return to a goal after distraction,
+    compared to prompts written by humans or generated without such selection.
+
+    '
+  background:
+    description: 'LLMs can perform goal-pursuit, but they drift when context pulls
+      them elsewhere and do not return to the original goal. The intuition is that
+      desire cannot be simply instructed into existence; it must be evolved. The idea
+      is to take a simple task (such as outputting incrementing numbers while handling
+      distractions), evolve prompts under selection pressure for goal-persistence,
+      and observe which prompts survive. The research questions include whether the
+      surviving prompts resemble human-written prompts, whether they drift less, and
+      what features they contain if they are successful.
+
+      '
+  metadata:
+    author: Ari Holtzman
+    source: IdeaHub
+    source_url: https://hypogenic.ai/ideahub/idea/uuh2oglRtmN3eVlQaYX8
+    idea_id: evolved_desire_in_llms_20260323_194726_200d41c0
+    created_at: '2026-03-23T19:47:26.786413'
+    status: submitted
+    github_repo_name: evolved-desire-llms-claude
+    github_repo_url: https://github.com/Hypogenic-AI/evolved-desire-llms-claude
